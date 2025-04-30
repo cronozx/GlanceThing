@@ -477,6 +477,13 @@ class SpotifyAPI extends EventEmitter {
 
     return res.status === 200
   }
+
+  async getPlaylists() {
+    const res = await this.instance.get('/me/playlists')
+
+    console.log(res.data)
+    return res.data
+  }
 }
 
 export let spotify: SpotifyAPI | null = null

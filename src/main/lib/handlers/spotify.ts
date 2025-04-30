@@ -83,6 +83,20 @@ export const actions: HandlerAction[] = [
       if (res === false)
         log('Failed to toggle repeat', 'Spotify', LogLevel.ERROR)
     }
+  },
+  {
+    action: 'playlists',
+    handle: async (ws) => {
+      const res = await spotify!.getPlaylists()
+
+      ws.send(
+        JSON.stringify({
+          type: 'spotify',
+          action: 'playlists',
+          data: res
+        })
+      )
+    }
   }
 ]
 

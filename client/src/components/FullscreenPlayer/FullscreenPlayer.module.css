@@ -9,7 +9,6 @@
   transform: translateY(100%);
   transition: 500ms ease;
   overflow: hidden;
-
   display: flex;
   flex-direction: column;
   outline: none;
@@ -17,6 +16,19 @@
 
 .player[data-shown='true'] {
   transform: translateY(0);
+}
+
+.playerContent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  transition: opacity 300ms ease;
+}
+
+.playerContent[data-hidden="true"] {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .background {
