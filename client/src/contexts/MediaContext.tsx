@@ -52,7 +52,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
     if (ready === true && socket) {
       const listener = (e: MessageEvent) => {
         const { type, action, data } = JSON.parse(e.data)
-        if (type !== 'spotify') return
+        if (type !== 'spotify' || action == 'playlists') return
 
         if (action === 'image') {
           if (!data) return
@@ -179,7 +179,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
         ...playerDataRef.current!,
         repeat_state: state
       })
-    }
+    },
   }
 
   return (

@@ -7,7 +7,11 @@ import { SocketContext } from '@/contexts/SocketContext.tsx'
 
 import styles from './Controls.module.css'
 
-const Controls: React.FC = () => {
+interface ControlsProps {
+  setPlaylistsShown: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+const Controls: React.FC<ControlsProps> = ({setPlaylistsShown}) => {
   const { socket } = useContext(SocketContext)
 
   const controlsRef = useRef<HTMLDivElement>(null)
@@ -95,6 +99,21 @@ const Controls: React.FC = () => {
       >
         <span className="material-icons">lock</span>
         <p>Lock</p>
+      </div>
+      <div
+        className={styles.control}
+        tabIndex={-1}
+        data-type="playlists"
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            e.stopPropagation()
+            setPlaylistsShown(true)
+          }
+        }}
+        onClick={() => setPlaylistsShown(true)}
+      >
+        <span className="material-icons">menu</span>
+        <p>Playlists</p>
       </div>
     </BaseWidget>
   )

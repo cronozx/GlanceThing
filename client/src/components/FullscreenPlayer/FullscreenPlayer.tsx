@@ -11,7 +11,6 @@ import { MediaContext } from '@/contexts/MediaContext.tsx'
 import { SocketContext } from '@/contexts/SocketContext.tsx'
 
 import styles from './FullscreenPlayer.module.css'
-import PlaylistsScreen from '../PlaylistsScreen/PlaylistsScreen'
 
 interface FullescreenPlayerProps {
   shown: boolean
@@ -44,7 +43,6 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
       onWheel({ deltaX: 1 } as WheelEvent<HTMLDivElement>)
     } else if (e.key === 'Escape') {
       setShown(false)
-      setPlaylistMenuShown(false)
     }
   }
 
@@ -60,7 +58,6 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
   const volumeRef = useRef(volume)
   const lastVolumeChange = useRef(0)
   const [volumeAdjusted, setVolumeAdjusted] = useState(false)
-  const [playlistMenuShown, setPlaylistMenuShown] = useState(false)
 
   function volumeUp() {
     if (playerDataRef.current === null) return
@@ -146,6 +143,10 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
     }
   }, [socket])
 
+  if (!shown) {
+    return <div>Empty</div>
+  }
+
   return (
     <div
       className={styles.player}
@@ -155,14 +156,9 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
       onWheel={onWheel}
       tabIndex={-1}
     >
-    <PlaylistsScreen 
-          shown={playlistMenuShown}
-          setShown={setPlaylistMenuShown}      
-    />
-  <button
+      <button
         onClick={e => {
           setShown(false)
-          setPlaylistMenuShown(false)
           e.currentTarget.blur()
         }}
         className={styles.close}
@@ -252,11 +248,6 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
                 </span>
               </button>
             ) : null}
-            <button onClick={() => {
-                setPlaylistMenuShown(true)
-            }}>
-              <span className='material-icons'>menu</span>
-            </button>
           </div>
         </>
       ) : (

@@ -6,7 +6,11 @@ import Apps from './widgets/Apps/Apps.tsx'
 
 import styles from './Widgets.module.css'
 
-const Widgets: React.FC = () => {
+interface WidgetsInterface {
+  setPlaylistsShown: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+const Widgets: React.FC<WidgetsInterface> = ({setPlaylistsShown}) => {
   const widgetsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -37,7 +41,7 @@ const Widgets: React.FC = () => {
       <Spotify />
       <div className={styles.column}>
         <Apps />
-        <Controls />
+        <Controls setPlaylistsShown={setPlaylistsShown}/>
       </div>
     </div>
   )

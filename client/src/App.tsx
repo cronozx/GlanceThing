@@ -11,11 +11,13 @@ import Widgets from '@/components/Widgets/Widgets.tsx'
 import Menu from '@/components/Menu/Menu.tsx'
 
 import styles from './App.module.css'
+import PlaylistsScreen from './components/PlaylistsScreen/PlaylistsScreen.tsx'
 
 const App: React.FC = () => {
   const { blurred } = useContext(AppBlurContext)
   const { ready } = useContext(SocketContext)
   const [playerShown, setPlayerShown] = useState(false)
+  const [playlistsShown, setPlaylistsShown] = useState(false)
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
@@ -35,8 +37,9 @@ const App: React.FC = () => {
     <>
       <div className={styles.app} data-blurred={blurred || !ready}>
         <Statusbar />
-        <Widgets />
+        <Widgets setPlaylistsShown={setPlaylistsShown}/>
         <FullescreenPlayer shown={playerShown} setShown={setPlayerShown} />
+        <PlaylistsScreen shown={playlistsShown} setShown={setPlaylistsShown} />
       </div>
       <LoadingScreen />
       <UpdateScreen />
