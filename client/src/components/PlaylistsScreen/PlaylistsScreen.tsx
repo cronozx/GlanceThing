@@ -106,6 +106,16 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
             </div>
           ) : error ? (
             <div className={styles.error}>
+              <button
+                onClick={() => {
+                    setShown(false)
+                }}
+                className={styles.close}
+              >
+                <span className="material-icons">
+                  keyboard_arrow_down
+                </span>
+              </button>
               <h1 style={{ color: '#ff6b6b', fontSize: '32px' }}>
                 Error: {error}
               </h1>

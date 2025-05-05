@@ -142,11 +142,7 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
       }
     }
   }, [socket])
-
-  if (!shown) {
-    return <div>Empty</div>
-  }
-
+  
   return (
     <div
       className={styles.player}

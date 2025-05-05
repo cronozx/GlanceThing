@@ -80,13 +80,12 @@
 }
 
 .playlistImage {
-  width: 200px;
-  height: 200px;
+  width: 150px;
+  height: 150px;
   flex-shrink: 0;
   border-radius: 5px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.1);
-  margin-top: -50px;
   margin-bottom: 15px;
 }
 

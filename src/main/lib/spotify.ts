@@ -3,7 +3,7 @@ import { TOTP } from 'totp-generator'
 import EventEmitter from 'events'
 import WebSocket from 'ws'
 
-import { log } from './utils.js'
+import { log, LogLevel } from './utils.js'
 
 async function subscribe(connection_id: string, token: string) {
   return await axios.put(
@@ -480,8 +480,14 @@ class SpotifyAPI extends EventEmitter {
 
   async getPlaylists() {
     const res = await this.instance.get('/me/playlists')
-
-    console.log(res.data)
+    
+    if (res.status !== 200) {
+      log('Failed to fetch playlists', 'Spotify', LogLevel.ERROR)
+      return { error: { message: 'Failed to fetch playlists' } }
+    } else {
+      log('Successfully fetched playlists')
+    }
+    
     return res.data
   }
 }
