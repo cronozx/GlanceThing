@@ -15,9 +15,13 @@ import { join } from 'path'
 import os from 'os'
 
 import {
+  getSpotifyCID,
+  getSpotifyCS,
   getStorageValue,
   loadStorage,
-  setSpotifyDc,
+  setSpotifyCID,
+  setSpotifyCS,
+  setSpotifyToken,
   setStorageValue
 } from './lib/storage.js'
 import { applyPatch, getPatches } from './lib/patches.js'
@@ -47,7 +51,7 @@ import {
 
 import icon from '../../resources/icon.png?asset'
 import trayIcon from '../../resources/tray.png?asset'
-import { getToken } from './lib/spotify.js'
+import { openSpotifyLogin } from './lib/spotify.js'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -189,7 +193,12 @@ enum IPCHandler {
   RemoveShortcut = 'removeShortcut',
   UpdateShortcut = 'updateShortcut',
   IsDevMode = 'isDevMode',
+  SetClientID = 'setClientID',
+  SetClientSecret = 'setClientSecret',
   SetSpotifyToken = 'setSpotifyToken',
+  getSpotifyCID = 'getSpotifyCID',
+  getSpotifyCS = 'getSpotifyCS',
+  OpenSpotifyLogin = 'openSpotifyLogin',
   GetBrightness = 'getBrightness',
   SetBrightness = 'setBrightness',
   GetPatches = 'getPatches',
@@ -330,15 +339,33 @@ async function setupIpcHandlers() {
     return isDev()
   })
 
-  ipcMain.handle(IPCHandler.SetSpotifyToken, async (_event, token) => {
-    const accessToken = await getToken(token).catch(() => null)
+  ipcMain.handle(IPCHandler.SetClientID, async (_event, clientID) => {
+    setSpotifyCID(clientID)
+    return true
+  })
 
-    if (accessToken) {
-      setSpotifyDc(token)
-      return true
-    } else {
-      return false
-    }
+  ipcMain.handle(IPCHandler.SetClientSecret, async (_event, clientSecret) => {
+    setSpotifyCS(clientSecret)
+    return true
+  })
+
+  ipcMain.handle(IPCHandler.SetSpotifyToken, async (_event, token) => {
+    setSpotifyToken(token)
+    return true
+  })
+
+  ipcMain.handle(IPCHandler.getSpotifyCID, async () => {
+    getSpotifyCID()
+    return true
+  })
+
+  ipcMain.handle(IPCHandler.getSpotifyCS, async () => {
+    getSpotifyCS()
+    return true
+  })
+
+  ipcMain.handle(IPCHandler.OpenSpotifyLogin, async () => {
+    return await openSpotifyLogin()
   })
 
   ipcMain.handle(IPCHandler.GetBrightness, async () => {

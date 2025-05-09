@@ -1,5 +1,5 @@
 import { filterData, setupSpotify } from '../spotify.js'
-import { getSpotifyDc } from '../storage.js'
+import { getSpotifyCS, getSpotifyCID, getSpotifyToken } from '../storage.js'
 import { wss } from '../server.js'
 import { log } from '../utils.js'
 
@@ -9,8 +9,7 @@ import { SetupFunction } from '../../types/WebSocketSetup.js'
 export const name = 'spotify'
 
 export const setup: SetupFunction = async () => {
-  const SPOTIFY_DC = getSpotifyDc()
-  const spotify = setupSpotify(SPOTIFY_DC)
+  const spotify = setupSpotify(getSpotifyCID(), getSpotifyCS(), getSpotifyToken())
 
   spotify.on('PLAYER_STATE_CHANGED', data => {
     if (!wss) return

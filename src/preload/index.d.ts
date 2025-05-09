@@ -32,7 +32,12 @@ declare global {
       removeShortcut: (id: string) => Promise<void>
       updateShortcut: (shortcut: Shortcut) => Promise<void>
       isDevMode: () => Promise<boolean>
-      setSpotifyToken: (token: string) => Promise<boolean>
+      setSpotifyCID: (clientID: string) => Promise<boolean>
+      setSpotifyCS: (clientSecret: string) => Promise<boolean>
+      setSpotifyToken: (sp_dc: string) => Promise<boolean>
+      getSpotifyCID: () => Promise<Boolean>
+      getSpotifyCS: () => Promise<Boolean>
+      openSpotifyLogin: () => void
       getBrightness: () => Promise<number>
       setBrightness: (brightness: number) => Promise<void>
       getPatches: () => Promise<

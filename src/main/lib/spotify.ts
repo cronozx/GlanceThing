@@ -1,9 +1,11 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
-import { TOTP } from 'totp-generator'
 import EventEmitter from 'events'
 import WebSocket from 'ws'
 
-import { log, LogLevel } from './utils.js'
+import { getSpotifyCID, setAccessToken, getAccessToken, getRefreshToken, setRefreshToken, setAuthCode, getAuthCode } from './storage.js'
+import express from 'express';
+import { BrowserWindow } from 'electron';
+import { TOTP } from 'totp-generator';
 
 async function subscribe(connection_id: string, token: string) {
   return await axios.put(
@@ -19,6 +21,118 @@ async function subscribe(connection_id: string, token: string) {
       validateStatus: () => true
     }
   )
+}
+
+export function openSpotifyLogin(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const clientID = getSpotifyCID();
+    
+    const app = express();
+    const server = app.listen(8888);
+    
+    const timeout = setTimeout(() => {
+      server.close();
+      reject(new Error('Authentication timed out'));
+    }, 120000);
+    
+    app.get('/callback/spotify', (req, res) => {
+      const code = req.query.code as string;
+      
+      if (!code) {
+        res.send('Authentication failed - no code provided');
+        server.close();
+        clearTimeout(timeout);
+        reject(new Error('No authorization code received'));
+        return;
+      }
+      
+      setAuthCode(code)
+      
+      res.send('<html><body><h1>Authentication successful!</h1><p>You can close this window now.</p><script>window.close();</script></body></html>');
+      server.close();
+      clearTimeout(timeout);
+      
+      resolve(code);
+    });
+    
+    const url = 'https://accounts.spotify.com/authorize?' +
+    new URLSearchParams({
+      client_id: clientID,
+      response_type: 'code',
+      redirect_uri: 'http://127.0.0.1:8888/callback/spotify',
+      scope: 'user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative'
+    }).toString();
+    
+    if (typeof window !== 'undefined') {
+      window.open(url);
+    } else {
+      const authWindow = new BrowserWindow({
+        width: 800,
+        height: 600,
+        show: true
+      });
+      authWindow.loadURL(url);
+    }
+  });
+}
+
+export async function getToken(clientID: string, clientSecret: string) {
+  const tokenRes = await axios.post(
+    'https://accounts.spotify.com/api/token',
+    new URLSearchParams({
+      code: getAuthCode(),
+      redirect_uri: 'http://127.0.0.1:8888/callback/spotify',
+      grant_type: 'authorization_code'
+    }),
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic ' + (Buffer.from(clientID + ':' + clientSecret).toString('base64'))
+      },
+      validateStatus: () => true
+    }
+  )
+
+  if (tokenRes.status !== 200) throw new Error('Invalid credentials')
+
+  if (!tokenRes.data.access_token) throw new Error('Invalid credentials')
+
+  setAccessToken(tokenRes.data.access_token)
+  setRefreshToken(tokenRes.data.refresh_token)
+
+  return tokenRes.data.access_token
+}
+
+export async function refreshToken(clientID: string, clientSecret: string): Promise<string> {
+  const refresh = getRefreshToken();
+
+  if (!refresh) throw new Error('No refresh token available');
+
+  const tokenRes = await axios.post(
+    'https://accounts.spotify.com/api/token',
+    new URLSearchParams({
+      refresh_token: refresh,
+      grant_type: 'refresh_token'
+    }),
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic ' + (Buffer.from(clientID + ':' + clientSecret).toString('base64'))
+      },
+      validateStatus: () => true
+    }
+  );
+
+  if (tokenRes.status !== 200) throw new Error('Could not refresh token');
+  if (!tokenRes.data.access_token) throw new Error('Invalid refresh response');
+
+  setAccessToken(tokenRes.data.access_token);
+  
+  if (tokenRes.data.refresh_token) {
+    setRefreshToken(tokenRes.data.refresh_token);
+  }
+
+  return tokenRes.data.access_token;
 }
 
 function base32FromBytes(bytes: Uint8Array, secretSauce: string): string {
@@ -82,7 +196,7 @@ async function generateTotp(): Promise<{
   }
 }
 
-export async function getToken(sp_dc: string) {
+export async function getClientToken(sp_dc: string) {
   const totp = await generateTotp()
 
   const res = await axios.get(
@@ -320,45 +434,57 @@ export async function fetchImage(id: string) {
 }
 
 class SpotifyAPI extends EventEmitter {
-  sp_dc: string
+  clientID: string
+  clientSecret: string
   token: string | null
+  sp_dc: string
   ws: WebSocket | null
   instance: AxiosInstance = axios.create({
-    baseURL: 'https://api.spotify.com/v1',
-    validateStatus: () => true
+    baseURL: 'https://api.spotify.com/v1'
   })
+  clientToken: string
 
-  constructor(sp_dc: string) {
+  constructor(clientID: string, clientSecret: string, sp_dc: string) {
     super()
 
+    this.clientID = clientID
+    this.clientSecret = clientSecret
+    this.token = getAccessToken() != null ? getAccessToken() : null
     this.sp_dc = sp_dc
-    this.token = null
     this.ws = null
+    this.clientToken = ''
 
     this.instance.interceptors.request.use(config => {
       config.headers.Authorization = `Bearer ${this.token}`
       return config
     })
 
-    this.instance.interceptors.response.use(async res => {
-      if (res.status === 401) {
-        log('Refreshing token...', 'Spotify')
-        this.token = await getToken(this.sp_dc)
-        return this.instance(res.config)
-      }
+    this.instance.interceptors.response.use(null, async error => {
+      if (error.response.status === 401) {
 
-      return res
-    })
+        const newToken = await refreshToken(this.clientID, this.clientSecret);
+        
+        setAccessToken(newToken);
+        
+        const newRequest = error.config;
+        newRequest.headers['Authorization'] = `Bearer ${newToken}`;
+        return axios(newRequest);
+      }
+      
+      return Promise.reject(error);
+    });
   }
 
   async start() {
-    this.token = await getToken(this.sp_dc).catch(err => {
-      this.emit('error', err)
-      return null
-    })
+      this.token = await getToken(this.clientID, this.clientSecret).catch(err => {
+        this.emit('error', err)
+        return null
+      })
+
+    this.clientToken = await getClientToken(this.sp_dc)
 
     this.ws = new WebSocket(
-      `wss://dealer.spotify.com/?access_token=${this.token}`
+      `wss://dealer.spotify.com/?access_token=${this.clientToken}`
     )
 
     this.setup()
@@ -380,7 +506,7 @@ class SpotifyAPI extends EventEmitter {
     this.ws.on('message', async d => {
       const msg = JSON.parse(d.toString())
       if (msg.headers?.['Spotify-Connection-Id']) {
-        await subscribe(msg.headers['Spotify-Connection-Id'], this.token!)
+        await subscribe(msg.headers['Spotify-Connection-Id'], this.clientToken!)
           .then(() => this.emit('ready'))
           .catch(err => this.emit('error', err))
 
@@ -432,6 +558,17 @@ class SpotifyAPI extends EventEmitter {
     return res.status === 200
   }
 
+  async playPlaylist(playlistID: string) {
+    const res = await this.instance.put(
+      '/me/player/play',
+      {
+        context_uri: `spotify:playlist:${playlistID}`
+      }
+    )
+  
+    return res.status === 200
+  }
+
   async setVolume(volume: number) {
     const res = await this.instance.put(
       '/me/player/volume',
@@ -454,6 +591,8 @@ class SpotifyAPI extends EventEmitter {
 
   async previous() {
     const res = await this.instance.post('/me/player/previous')
+
+    console.log(res.status)
 
     return res.status === 200
   }
@@ -481,20 +620,13 @@ class SpotifyAPI extends EventEmitter {
   async getPlaylists() {
     const res = await this.instance.get('/me/playlists')
     
-    if (res.status !== 200) {
-      log('Failed to fetch playlists', 'Spotify', LogLevel.ERROR)
-      return { error: { message: 'Failed to fetch playlists' } }
-    } else {
-      log('Successfully fetched playlists')
-    }
-    
     return res.data
   }
 }
 
 export let spotify: SpotifyAPI | null = null
 
-export function setupSpotify(sp_dc: string) {
-  spotify = new SpotifyAPI(sp_dc)
+export function setupSpotify(clientID: string, clientSecret: string, sp_dc:string) {
+  spotify = new SpotifyAPI(clientID, clientSecret, sp_dc)
   return spotify
 }

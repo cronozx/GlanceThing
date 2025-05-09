@@ -120,10 +120,51 @@ export function getSocketPassword() {
   return socketPassword
 }
 
-export function getSpotifyDc() {
-  return getStorageValue('sp_dc', true)
+export function getSpotifyCID() {
+  return getStorageValue('clientID', true)
 }
 
-export function setSpotifyDc(dc: string) {
-  return setStorageValue('sp_dc', dc, true)
+export function setSpotifyCID(clientID: string) {
+  return setStorageValue('clientID', clientID, true)
 }
+
+export function getSpotifyCS() {
+  return getStorageValue('clientSecret', true)
+}
+
+export function setSpotifyCS(clientSecret: string) {
+  return setStorageValue('clientSecret', clientSecret, true)
+}
+
+export function getAccessToken() {
+  return getStorageValue('accessToken', true)
+}
+
+export function setAccessToken(accessToken: string) {
+  return setStorageValue('accessToken', accessToken, true)
+}
+
+export function getRefreshToken() {
+  return getStorageValue('refreshToken', true)
+}
+
+export function setRefreshToken(refreshToken: string) {
+  return setStorageValue('refreshToken', refreshToken, true)
+}
+
+export function setSpotifyToken(token: string) {
+  return setStorageValue('token', token, true)
+}
+
+export function getSpotifyToken() {
+  return getStorageValue('token', true)
+}
+
+export function setAuthCode(authCode: string) {
+  return setStorageValue('authCode', authCode, true)
+}
+
+export function getAuthCode() {
+  return getStorageValue('authCode', true)
+}
+

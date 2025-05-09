@@ -18,43 +18,76 @@ enum State {
 const Spotify: React.FC<SpotifyProps> = ({ onStepComplete }) => {
   const [state, setState] = useState<State>(0)
 
-  const inputRef = useRef<HTMLInputElement | null>(null)
+  const clientIdRef = useRef<HTMLInputElement | null>(null)
+  const clientSecretRef = useRef<HTMLInputElement | null>(null)
 
   async function check() {
-    const token = inputRef.current!.value
+    const clientID = clientIdRef.current!.value
+    const clientSecret = clientSecretRef.current!.value
+    
+    if (!clientID || !clientSecret) {
+      setState(State.Invalid)
+      return
+    }
+    
     setState(State.Checking)
-    const valid = await window.api.setSpotifyToken(token)
-    if (valid) setState(State.Valid)
-    else setState(State.Invalid)
+    
+    const validClientID = await window.api.setSpotifyCID(clientID)
+    if (!validClientID) {
+      setState(State.Invalid)
+      return
+    }
+    
+    const validClientSecret = await window.api.setSpotifyCS(clientSecret)
+    if (!validClientSecret) {
+      setState(State.Invalid)
+      return
+    }
+    
+    setState(State.Valid)
   }
 
   useEffect(() => {
-    window.api.getStorageValue('sp_dc').then(t => {
-      if (t) setState(State.Valid)
+    // Check if we already have stored credentials
+    Promise.all([
+      window.api.getStorageValue('spotifyClientID'),
+      window.api.getStorageValue('spotifyClientSecret')
+    ]).then(([clientID, clientSecret]) => {
+      if (clientID && clientSecret) {
+        setState(State.Valid)
+      }
     })
   }, [])
 
   return (
     <div className={styles.spotify}>
       <p className={styles.step}>Step 3</p>
-      <h1>Getting Spotify Token</h1>
+      <h1>Spotify API Credentials</h1>
       <p>
-        Now you&apos;ll get your Spotify token, so GlanceThing can show you
+        Now you&apos;ll enter your Spotify API credentials, so GlanceThing can show you
         your playback status live.
       </p>
       <a
-        href="https://github.com/BluDood/GlanceThing/wiki/Getting-your-Spotify-token"
+        href="https://github.com/BluDood/GlanceThing/wiki/Getting-your-Spotify-credentials"
         target="_blank"
         rel="noreferrer"
       >
-        Follow this guide on how to get it.
+        Follow this guide on how to get your credentials.
       </a>
-      <input
-        ref={inputRef}
-        disabled={[State.Checking, State.Valid].includes(state)}
-        type="password"
-        placeholder="sp_dc token"
-      />
+      <div className={styles.inputGroup}>
+        <input
+          ref={clientIdRef}
+          disabled={[State.Checking, State.Valid].includes(state)}
+          type="password"
+          placeholder="Client ID"
+        />
+        <input
+          ref={clientSecretRef}
+          disabled={[State.Checking, State.Valid].includes(state)}
+          type="password"
+          placeholder="Client Secret"
+        />
+      </div>
       {state === State.Checking ? (
         <div className={styles.state} key={'checking'}>
           <Loader />
@@ -70,7 +103,7 @@ const Spotify: React.FC<SpotifyProps> = ({ onStepComplete }) => {
           <span className="material-icons" data-type="error">
             error
           </span>
-          <p>Invalid token!</p>
+          <p>Invalid credentials!</p>
         </div>
       ) : null}
       <div className={styles.buttons}>

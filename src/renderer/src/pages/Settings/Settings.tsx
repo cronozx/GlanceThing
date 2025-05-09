@@ -10,6 +10,8 @@ import styles from './Settings.module.css'
 
 import icon from '@/assets/icon.png'
 
+
+
 enum Tab {
   General,
   Client,
@@ -279,7 +281,8 @@ const GeneralTab: React.FC = () => {
 
   const settings = useRef<{
     installAutomatically?: boolean
-    sp_dc?: string
+    clientId?: string
+    clientSecret?: string
   }>({})
 
   useEffect(() => {
@@ -295,10 +298,20 @@ const GeneralTab: React.FC = () => {
     loadSettings()
   }, [])
 
-  async function handleSpotifyTokenChange(token: string) {
+  async function handleSpotifyCredentialsChange(type: 'clientID' | 'clientSecret' | 'sp_dc', value: string) {
     setSpotifyStatus(SpotifyStatus.Loading)
-    if (!token) return setSpotifyStatus(SpotifyStatus.Invalid)
-    const res = await window.api.setSpotifyToken(token)
+    if (!value) return setSpotifyStatus(SpotifyStatus.Invalid)
+    
+    let res = false
+    if (type === 'clientID') {
+      res = await window.api.setSpotifyCID(value)
+    } else if (type === 'clientSecret') {
+      res = await window.api.setSpotifyCS(value)
+    } else {
+      res = await window.api.setSpotifyToken(value)
+    }
+
+    console.log(`res ${res}`)
 
     if (res === false) {
       setSpotifyStatus(SpotifyStatus.Invalid)
@@ -319,18 +332,42 @@ const GeneralTab: React.FC = () => {
           }
         />
         <InputWithSubmitSetting
+          label="Spotify Client ID"
+          description="Used for Spotify API authentication"
+          password
+          defaultValue=""
+          disabled={spotifyStatus === SpotifyStatus.Loading}
+          onSubmit={(value) => handleSpotifyCredentialsChange('clientID', value)}
+          submitLabel="Change"
+        />
+        <InputWithSubmitSetting
+          label="Spotify Client Secret"
+          description="Used for Spotify API authentication"
+          password
+          defaultValue=""
+          disabled={spotifyStatus === SpotifyStatus.Loading}
+          onSubmit={(value) => handleSpotifyCredentialsChange('clientSecret', value)}
+          submitLabel="Change"
+        />
+        <InputWithSubmitSetting
           label="Spotify Token"
           description="Used for live fetching of Spotify playback status"
           password
           defaultValue=""
           disabled={spotifyStatus === SpotifyStatus.Loading}
-          onSubmit={handleSpotifyTokenChange}
+          onSubmit={(value) => handleSpotifyCredentialsChange('sp_dc', value)}
           submitLabel="Change"
         />
+        <button
+          onClick={() => window.api.openSpotifyLogin()}
+          disabled={ window.api.getSpotifyCID() === null ||  window.api.getSpotifyCS() === null}
+        > 
+        Login
+        </button>
         {spotifyStatus === SpotifyStatus.Invalid ? (
-          <p className={styles.error}>Invalid Spotify token</p>
+          <p className={styles.error}>Invalid Spotify credentials</p>
         ) : spotifyStatus === SpotifyStatus.Valid ? (
-          <p className={styles.success}>Token saved!</p>
+          <p className={styles.success}>Credentials saved!</p>
         ) : null}
       </div>
     )

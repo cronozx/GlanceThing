@@ -30,6 +30,13 @@
   padding: 30px;
 }
 
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
 .buttons button {
   all: unset;
   padding: 8px 16px;

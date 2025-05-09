@@ -97,6 +97,16 @@ export const actions: HandlerAction[] = [
         })
       )
     }
+  },
+  {
+    action: 'playPlaylist',
+    handle: async (_, data) => {
+      const res = await spotify!.playPlaylist(
+        (data as { playlistID: string }).playlistID
+      )
+      if (res === false)
+        log('Failed to play playlist', 'Spotify', LogLevel.ERROR)
+    }
   }
 ]
 

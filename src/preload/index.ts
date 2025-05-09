@@ -26,7 +26,12 @@ enum IPCHandler {
   RemoveShortcut = 'removeShortcut',
   UpdateShortcut = 'updateShortcut',
   IsDevMode = 'isDevMode',
+  setSpotifyCID = 'setClientID',
+  setSpotiftyCS = 'setClientSecret',
   SetSpotifyToken = 'setSpotifyToken',
+  getSpotifyCID = 'getSpotifyCID',
+  getSpotifyCS = 'getSpotifyCID',
+  openSpotifyLogin = 'openSpotifyLogin',
   GetBrightness = 'getBrightness',
   SetBrightness = 'setBrightness',
   GetPatches = 'getPatches',
@@ -69,8 +74,16 @@ const api = {
   updateShortcut: (shortcut: Shortcut) =>
     ipcRenderer.invoke(IPCHandler.UpdateShortcut, shortcut),
   isDevMode: () => ipcRenderer.invoke(IPCHandler.IsDevMode),
+  setSpotifyCID: (clientID: string) => 
+    ipcRenderer.invoke(IPCHandler.setSpotifyCID, clientID),
+  setSpotifyCS: (clientCS: string) => 
+    ipcRenderer.invoke(IPCHandler.setSpotiftyCS, clientCS),
+  openSpotifyLogin: () => 
+    ipcRenderer.invoke(IPCHandler.openSpotifyLogin),
   setSpotifyToken: (token: string) =>
     ipcRenderer.invoke(IPCHandler.SetSpotifyToken, token),
+  getSpotifyCID: () => ipcRenderer.invoke(IPCHandler.getSpotifyCID),
+  getSpotifyCS: () => ipcRenderer.invoke(IPCHandler.getSpotifyCS),
   getBrightness: () => ipcRenderer.invoke(IPCHandler.GetBrightness),
   setBrightness: (brightness: number) =>
     ipcRenderer.invoke(IPCHandler.SetBrightness, brightness),

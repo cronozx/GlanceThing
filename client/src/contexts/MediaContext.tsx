@@ -20,6 +20,7 @@ interface MediaContextProps {
     skipBackward: () => void
     shuffle: (state: boolean) => void
     repeat: (state: 'off' | 'context' | 'track') => void
+    playPlaylist: (playlistID: string) => void
   }
 }
 
@@ -31,7 +32,8 @@ const MediaContext = createContext<MediaContextProps>({
     skipForward: () => {},
     skipBackward: () => {},
     shuffle: () => {},
-    repeat: () => {}
+    repeat: () => {},
+    playPlaylist: () => {}
   }
 })
 
@@ -180,6 +182,17 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
         repeat_state: state
       })
     },
+    playPlaylist: (playlistID: string) => {
+      socket?.send(
+        JSON.stringify({
+          type: 'spotify',
+          action: 'playPlaylist',
+          data: {
+            playlistID
+          }
+        })
+      )
+    }
   }
 
   return (

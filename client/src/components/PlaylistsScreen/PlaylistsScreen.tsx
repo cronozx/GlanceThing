@@ -1,8 +1,10 @@
 import { useContext, useEffect, useState, useRef } from 'react'
 import { SocketContext } from '@/contexts/SocketContext.tsx'
-import Carousel from 'react-multi-carousel'
-import 'react-multi-carousel/lib/styles.css'
 import styles from './PlaylistsScreen.module.css'
+import { MediaContext } from '@/contexts/MediaContext'
+import Slider from 'react-slick'
+import 'slick-carousel/slick/slick.css'
+import 'slick-carousel/slick/slick-theme.css'
 
 interface SpotifyPlaylist {
   id: string
@@ -29,26 +31,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const playerRef = useRef<HTMLDivElement>(null)
-
-  const responsive = {
-    superLargeDesktop: {
-      breakpoint: { max: 4000, min: 1200 },
-      items: 3,
-      partialVisibilityGutter: -120
-    },
-    desktop: {
-      breakpoint: { max: 1200, min: 992 },
-      items: 1,
-    },
-    tablet: {
-      breakpoint: { max: 992, min: 576 },
-      items: 1,
-    },
-    mobile: {
-      breakpoint: { max: 576, min: 0 },
-      items: 1,
-    },
-  };
+  const { actions } = useContext(MediaContext)
 
   useEffect(() => {
     if (shown) playerRef.current?.focus()
@@ -137,32 +120,30 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
               {playlists.length === 0 ? (
                         <p>No playlists found</p>
                     ) : (
-                      <Carousel
-                      responsive={responsive}
-                      infinite={true}
-                      keyBoardControl={true}
-                      containerClass={styles.carouselContainer}
-                      itemClass={styles.carouselItem}
-                      arrows={false}
-                      autoPlay={false}
-                      swipeable={true}
-                      draggable={true}
-                      partialVisible={true}
-                    >
-                      {playlists.map((playlist) => (
-                          <div key={playlist.id} className={styles.playlistItem}>
-                              <div className={styles.playlistImage}>
-                                  {playlist.images[0] && (
-                                      <img src={playlist.images[0].url} alt={playlist.name} />
-                                  )}
-                              </div>
-                              <div className={styles.playlistInfo}>
-                                  <h3>{playlist.name}</h3>
-                                  <p>{playlist.description || `${playlist.tracks.total} tracks`}</p>
-                              </div>
-                          </div>
-                      ))}
-                    </Carousel>
+                      <div style={{'padding': '20px'}}>
+                        <Slider
+                          arrows={false}
+                          slidesToShow={3}
+                          slidesToScroll={1}
+                          infinite={true}
+                          centerMode={true}
+                          centerPadding='0px'
+                        >
+                        {playlists.map((playlist) => (
+                            <div key={playlist.id} className={styles.playlistItem} onClick={() => {actions.playPlaylist(playlist.id)}}>
+                                <div className={styles.playlistImage}>
+                                    {playlist.images[0] && (
+                                        <img src={playlist.images[0].url} alt={playlist.name} />
+                                    )}
+                                </div>
+                                <div className={styles.playlistInfo}>
+                                    <h3>{playlist.name}</h3>
+                                    <p>{playlist.description || `${playlist.tracks.total} tracks`}</p>
+                                </div>
+                            </div>
+                        ))}
+                        </Slider>
+                      </div>
                     )}
               </div>
             </>
