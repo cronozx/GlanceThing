@@ -1,4 +1,4 @@
-import { fetchImage, spotify } from '../spotify.js'
+import { fetchImage, fetchPlaylistImage, spotify } from '../spotify.js'
 import { log, LogLevel } from '../utils.js'
 
 import {
@@ -89,13 +89,27 @@ export const actions: HandlerAction[] = [
     handle: async (ws) => {
       const res = await spotify!.getPlaylists()
 
-      ws.send(
-        JSON.stringify({
-          type: 'spotify',
-          action: 'playlists',
-          data: res
+      const modified = await Promise.all(
+        res.items.map(async item => {
+          const imageBase64 = await fetchPlaylistImage(item.id)
+
+          return {
+            track: {
+              id: item.id,
+              name: item.name,
+              description: item.description, 
+              image: imageBase64,
+              tracks: item.tracks.total
+            }
+          }
         })
       )
+
+      ws.send(JSON.stringify({
+        type:   'spotify',
+        action: 'playlists',
+        data:   modified
+      }))
     }
   },
   {

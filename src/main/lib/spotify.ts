@@ -433,6 +433,18 @@ export async function fetchImage(id: string) {
   return `data:image/jpeg;base64,${Buffer.from(res.data).toString('base64')}`
 }
 
+export async function fetchPlaylistImage(id: string) {
+  const metaRes = await axios.get<{ url: string; height: number|null; width: number|null }[]>(
+    `https://api.spotify.com/v1/playlists/${id}/images`,
+    { headers: { Authorization: `Bearer ${getAccessToken()}` } }
+  )
+  
+  const url = metaRes.data[0]?.url
+
+  const imgRes = await axios.get(url, { responseType: 'arraybuffer' })
+  return `data:image/jpeg;base64,${Buffer.from(imgRes.data).toString('base64')}`
+}
+
 class SpotifyAPI extends EventEmitter {
   clientID: string
   clientSecret: string

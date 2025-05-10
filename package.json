@@ -1,6 +1,6 @@
 {
   "name": "glancething",
-  "version": "0.0.8-2",
+  "version": "0.0.8-3",
   "description": "Desktop application for GlanceThing",
   "main": "./out/main/index.js",
   "author": "BluDood",
@@ -23,7 +23,6 @@
     "@fontsource-variable/open-sans": "^5.1.0",
     "@fontsource/material-icons": "^5.1.0",
     "axios": "^1.7.7",
-    "electron": "^36.1.0",
     "electron-updater": "^6.1.7",
     "express": "^5.1.0",
     "moment": "^2.30.1",

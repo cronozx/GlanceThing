@@ -10,11 +10,7 @@ interface SpotifyPlaylist {
   id: string
   name: string
   description: string
-  images: Array<{
-    url: string
-    height: number | null
-    width: number | null
-  }>
+  image: string
   tracks: {
     total: number
   }
@@ -48,24 +44,36 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
           })
         );
         
+        // …existing code…
         const listener = (e: MessageEvent) => {
           try {
-            const { type, action, data } = JSON.parse(e.data);
-            
-            if (type !== 'spotify' || action !== 'playlists') return;
-    
+            const { type, action, data } = JSON.parse(e.data)
+        
+            if (type !== 'spotify' || action !== 'playlists') return
+        
             if (data.error) {
-              setError(data.error.message || 'Failed to fetch playlists');
-              setLoading(false);
-              return;
+              setError(data.error.message || 'Failed to fetch playlists')
+              setLoading(false)
+              return
             }
-            
-            setPlaylists(data.items || []);
-            setLoading(false);
-          } catch (err) {
-            setLoading(false);
+        
+            let playlistsData: SpotifyPlaylist[] = []
+            if (Array.isArray(data)) {
+              playlistsData = data.map((item: any) => ({
+                id: item.track.id,
+                name: item.track.name,
+                description: item.track.description,
+                image: item.track.image,
+                tracks: { total: item.track.tracks }
+              }))
+            }
+        
+            setPlaylists(playlistsData)
+            setLoading(false)
+          } catch {
+            setLoading(false)
           }
-        };
+        }
         
         socket.addEventListener('message', listener);
         
@@ -120,30 +128,26 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
               {playlists.length === 0 ? (
                         <p>No playlists found</p>
                     ) : (
-                      <div style={{'padding': '20px'}}>
                         <Slider
                           arrows={false}
-                          slidesToShow={3}
+                          slidesToShow={1}
                           slidesToScroll={1}
                           infinite={true}
                           centerMode={true}
-                          centerPadding='0px'
+                          centerPadding='10px'
                         >
                         {playlists.map((playlist) => (
                             <div key={playlist.id} className={styles.playlistItem} onClick={() => {actions.playPlaylist(playlist.id)}}>
                                 <div className={styles.playlistImage}>
-                                    {playlist.images[0] && (
-                                        <img src={playlist.images[0].url} alt={playlist.name} />
-                                    )}
+                                    <img src={playlist.image} />
                                 </div>
                                 <div className={styles.playlistInfo}>
                                     <h3>{playlist.name}</h3>
-                                    <p>{playlist.description || `${playlist.tracks.total} tracks`}</p>
+                                    <p>{playlist.description || `${playlist.tracks.total} Tracks`}</p>
                                 </div>
                             </div>
                         ))}
                         </Slider>
-                      </div>
                     )}
               </div>
             </>

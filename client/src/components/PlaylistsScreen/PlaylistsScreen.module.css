@@ -101,42 +101,6 @@
   color: #ff6b6b;
 }
 
-:global(.slick-list) {
-  overflow: visible !important;
-}
-
 :global(.slick-slide > div) {
   padding: 0 50px;
-}
-
-:global(.slick-slide.slick-center) {
-  position: relative;
-  bottom: 13px;
-  border-radius: 10px;
-  padding: 15px;
-  transform: scale(1.1);
-  display: flex !important;
-  justify-content: center;
-}
-
-@media (max-width: 700px) {
-  .playlistItem {
-    transform: scale(0.9) !important;
-    padding: 20px;
-  }
-  
-  :global(.slick-slide > div) {
-    padding: 0 10px;
-  }
-  
-  :global(.slick-slide.slick-center) {
-    bottom: 15px;
-    height: 280px !important;
-    width: 240px !important;
-  }
-  
-  .playlistImage {
-    width: 120px;
-    height: 120px;
-  }
 }
