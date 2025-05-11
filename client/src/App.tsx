@@ -21,8 +21,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !playlistsShown) {
         setPlayerShown(s => !s)
+      } else if (e.key === 'Escape' && playlistsShown) {
+        setPlaylistsShown(s => !s)
       }
     }
 

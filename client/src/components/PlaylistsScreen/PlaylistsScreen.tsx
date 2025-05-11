@@ -28,6 +28,8 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
   const [error, setError] = useState<string | null>(null)
   const playerRef = useRef<HTMLDivElement>(null)
   const { actions } = useContext(MediaContext)
+  const sliderRef = useRef<Slider>(null)
+  const [currentSlide, setCurrentSlide] = useState(0)
 
   useEffect(() => {
     if (shown) playerRef.current?.focus()
@@ -44,7 +46,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
           })
         );
         
-        // …existing code…
+
         const listener = (e: MessageEvent) => {
           try {
             const { type, action, data } = JSON.parse(e.data)
@@ -83,11 +85,33 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
       }
     }, [ready, socket, shown]);
 
+    function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+      e.stopPropagation()
+      e.preventDefault()
+
+      if (e.key === 'Enter') {
+        const playlist = playlists[currentSlide]
+        actions.playPlaylist(playlist.id)
+      }
+    }
+
+    function onWheel(e: React.WheelEvent<HTMLDivElement>) {
+      if (e.deltaX < 0) {
+        sliderRef.current?.slickPrev()
+      } else if (e.deltaX > 0) {
+        sliderRef.current?.slickNext()
+      }
+    }
+    
+
     return (
         <div
           className={styles.playlistsContainer}
           data-shown={shown}
           ref={playerRef}
+          tabIndex={0}
+          onWheel={onWheel}
+          onKeyDown={onKeyDown}
         >
           {loading ? (
             <div className={styles.loading}>
@@ -135,6 +159,8 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
                           infinite={true}
                           centerMode={true}
                           centerPadding='10px'
+                          ref={sliderRef}
+                          afterChange={(i) => {setCurrentSlide(i)}}
                         >
                         {playlists.map((playlist) => (
                             <div key={playlist.id} className={styles.playlistItem} onClick={() => {actions.playPlaylist(playlist.id)}}>
