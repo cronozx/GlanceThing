@@ -1,4 +1,4 @@
-import { fetchImage, fetchPlaylistImage, spotify } from '../spotify.js'
+import { fetchImage, fetchLikedSongsImage, fetchPlaylistImage, spotify } from '../spotify.js'
 import { log, LogLevel } from '../utils.js'
 
 import {
@@ -104,17 +104,33 @@ export const actions: HandlerAction[] = [
           }
         })
       )
+      
+      const resLiked = await spotify!.getLikedSongs()
+      const likedSongs = {
+        track: {
+          id: 'liked',
+          name: 'Liked Songs',
+          description: ``,
+          image: await fetchLikedSongsImage(),
+          tracks: resLiked.total
+        }
+      }
 
       ws.send(JSON.stringify({
         type:   'spotify',
         action: 'playlists',
-        data:   modified
+        data:   [likedSongs, ...modified]
       }))
     }
   },
   {
     action: 'playPlaylist',
     handle: async (_, data) => {
+      if ((data as { playlistID: string }).playlistID === 'liked') {
+        spotify!.playLikedSongs()
+        return
+      }
+
       const res = await spotify!.playPlaylist(
         (data as { playlistID: string }).playlistID
       )

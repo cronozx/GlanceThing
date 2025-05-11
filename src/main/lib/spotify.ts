@@ -445,6 +445,14 @@ export async function fetchPlaylistImage(id: string) {
   return `data:image/jpeg;base64,${Buffer.from(imgRes.data).toString('base64')}`
 }
 
+export async function fetchLikedSongsImage() {
+  const res = await axios.get('https://misc.scdn.co/liked-songs/liked-songs-300.jpg', {
+    responseType: 'arraybuffer'
+  })
+
+  return `data:image/jpeg;base64,${Buffer.from(res.data).toString('base64')}`
+}
+
 class SpotifyAPI extends EventEmitter {
   clientID: string
   clientSecret: string
@@ -581,6 +589,19 @@ class SpotifyAPI extends EventEmitter {
     return res.status === 200
   }
 
+  async playLikedSongs() {
+    const userID = await this.getUserID()
+
+    const res = await this.instance.put(
+      '/me/player/play',
+      {
+        context_uri: `spotify:user:${userID}:collection`
+      }
+    )
+  
+    return res.status === 200
+  }
+
   async setVolume(volume: number) {
     const res = await this.instance.put(
       '/me/player/volume',
@@ -633,6 +654,18 @@ class SpotifyAPI extends EventEmitter {
     const res = await this.instance.get('/me/playlists')
     
     return res.data
+  }
+
+  async getLikedSongs() {
+    const res = await this.instance.get('/me/tracks')
+
+    return res.data
+  }
+
+  async getUserID() {
+    const res = await this.instance.get('/me')
+
+    return res.data.id
   }
 }
 

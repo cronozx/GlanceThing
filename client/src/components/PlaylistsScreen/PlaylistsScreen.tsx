@@ -92,6 +92,8 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
       if (e.key === 'Enter') {
         const playlist = playlists[currentSlide]
         actions.playPlaylist(playlist.id)
+      } else if (e.key === 'Escape') {
+        setShown(false)
       }
     }
 
@@ -110,6 +112,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
           data-shown={shown}
           ref={playerRef}
           tabIndex={0}
+          autoFocus={true}
           onWheel={onWheel}
           onKeyDown={onKeyDown}
         >
