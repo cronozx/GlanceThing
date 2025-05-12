@@ -140,6 +140,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
             </div>
           ) : (
             <>
+              <img className={styles.bg} src={playlists[currentSlide].image}/>
               <button
                 onClick={() => {
                     setShown(false)
