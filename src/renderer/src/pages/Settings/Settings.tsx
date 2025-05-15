@@ -14,6 +14,7 @@ import icon from '@/assets/icon.png'
 
 enum Tab {
   General,
+  Weather,
   Client,
   Appearance,
   Startup,
@@ -64,6 +65,13 @@ const Settings: React.FC = () => {
               General
             </button>
             <button
+              onClick={() => setCurrentTab(Tab.Weather)}
+              data-active={currentTab === Tab.Weather}
+            >
+              <span className="material-icons">wb_sunny</span>
+              Weather
+            </button>
+            <button
               onClick={() => setCurrentTab(Tab.Client)}
               data-active={currentTab === Tab.Client}
             >
@@ -104,6 +112,8 @@ const Settings: React.FC = () => {
           <div className={styles.tab}>
             {currentTab === Tab.General ? (
               <GeneralTab />
+            ) : currentTab === Tab.Weather ? (
+              <WeatherTab/>
             ) : currentTab === Tab.Client ? (
               <ClientTab />
             ) : currentTab === Tab.Appearance ? (
@@ -371,6 +381,22 @@ const GeneralTab: React.FC = () => {
         ) : null}
       </div>
     )
+  )
+}
+
+const WeatherTab: React.FC = () => {
+  const handleCityChange = (city: string) => {
+    window.api.setCity(city)
+  }
+
+  return (
+      <InputWithSubmitSetting
+      label="City"
+      description="Used for getting your location for weather"
+      defaultValue=""
+      onSubmit={(value) => handleCityChange(value)}
+      submitLabel="Change"
+    />
   )
 }
 

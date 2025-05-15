@@ -114,6 +114,6 @@
   color: #ff6b6b;
 }
 
-:global(.slick-slide > div) {
+:global(.slider .slick-slide > div) {
   padding: 0 50px;
 }

@@ -33,7 +33,11 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
 
   useEffect(() => {
     if (shown) playerRef.current?.focus()
-    else playerRef.current?.blur()
+    else {
+      playerRef.current?.blur()
+      sliderRef.current?.slickGoTo(0)
+      setCurrentSlide(0)
+    }
   }, [shown])
 
   useEffect(() => {
@@ -162,9 +166,10 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({shown, setShown}) => {
                           slidesToScroll={1}
                           infinite={true}
                           centerMode={true}
-                          centerPadding='10px'
+                          centerPadding='0px'
                           ref={sliderRef}
                           afterChange={(i) => {setCurrentSlide(i)}}
+                          className='slider'
                         >
                         {playlists.map((playlist) => (
                             <div key={playlist.id} className={styles.playlistItem} onClick={() => {actions.playPlaylist(playlist.id)}}>

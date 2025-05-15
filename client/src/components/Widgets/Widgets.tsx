@@ -5,6 +5,8 @@ import Spotify from './widgets/Spotify/Spotify.tsx'
 import Apps from './widgets/Apps/Apps.tsx'
 
 import styles from './Widgets.module.css'
+import Slider from 'react-slick'
+import Weather from './widgets/Weather/Weather.tsx'
 
 interface WidgetsInterface {
   setPlaylistsShown: React.Dispatch<React.SetStateAction<boolean>>
@@ -41,7 +43,15 @@ const Widgets: React.FC<WidgetsInterface> = ({setPlaylistsShown}) => {
       <Spotify />
       <div className={styles.column}>
         <Apps />
-        <Controls setPlaylistsShown={setPlaylistsShown}/>
+        <Slider
+          infinite={false}
+          className='carousel'
+          useCSS={true}
+          arrows={false}
+        >
+          <Controls setPlaylistsShown={setPlaylistsShown}/>
+          <Weather></Weather>
+        </Slider>
       </div>
     </div>
   )

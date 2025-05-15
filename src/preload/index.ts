@@ -35,7 +35,9 @@ enum IPCHandler {
   GetBrightness = 'getBrightness',
   SetBrightness = 'setBrightness',
   GetPatches = 'getPatches',
-  ApplyPatch = 'applyPatch'
+  ApplyPatch = 'applyPatch',
+  setCity = 'setCity',
+  getCity = 'getCity'
 }
 
 // Custom APIs for renderer
@@ -89,7 +91,9 @@ const api = {
     ipcRenderer.invoke(IPCHandler.SetBrightness, brightness),
   getPatches: () => ipcRenderer.invoke(IPCHandler.GetPatches),
   applyPatch: (patchName: string) =>
-    ipcRenderer.invoke(IPCHandler.ApplyPatch, patchName)
+    ipcRenderer.invoke(IPCHandler.ApplyPatch, patchName),
+  getCity: () => ipcRenderer.invoke(IPCHandler.getCity),
+  setCity: (city: string) => ipcRenderer.invoke(IPCHandler.setCity, city)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

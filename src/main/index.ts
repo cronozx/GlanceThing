@@ -19,10 +19,11 @@ import {
   getSpotifyCS,
   getStorageValue,
   loadStorage,
+  setCity,
   setSpotifyCID,
   setSpotifyCS,
   setSpotifyToken,
-  setStorageValue
+  setStorageValue,
 } from './lib/storage.js'
 import { applyPatch, getPatches } from './lib/patches.js'
 import { isDev, log, LogLevel, setLogLevel } from './lib/utils.js'
@@ -202,7 +203,8 @@ enum IPCHandler {
   GetBrightness = 'getBrightness',
   SetBrightness = 'setBrightness',
   GetPatches = 'getPatches',
-  ApplyPatch = 'applyPatch'
+  ApplyPatch = 'applyPatch',
+  setCity = 'setCity'
 }
 
 async function setupIpcHandlers() {
@@ -382,6 +384,11 @@ async function setupIpcHandlers() {
 
   ipcMain.handle(IPCHandler.ApplyPatch, async (_event, patch) => {
     return await applyPatch(patch)
+  })
+
+  ipcMain.handle(IPCHandler.setCity, async (_event, city: string) => {
+    setCity(city)
+    return true
   })
 }
 

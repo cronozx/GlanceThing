@@ -1,0 +1,42 @@
+.weather {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 35px;
+}
+
+.icon span {
+  font-size: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info {
+  margin-left: 140px;
+  text-align: center;
+  padding-left: 20px;
+}
+
+.temp {
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.description {
+  font-size: 20px;
+  color: #aaa;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  font-size: 18px;
+  color: #aaa;
+}

@@ -168,3 +168,11 @@ export function getAuthCode() {
   return getStorageValue('authCode', true)
 }
 
+export function setCity(city: string) {
+  return setStorageValue('city', city, true)
+}
+
+export function getCity() {
+  return getStorageValue('city', true)
+}
+

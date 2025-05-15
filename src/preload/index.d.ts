@@ -44,6 +44,8 @@ declare global {
         { name: string; description: string; installed: boolean }[]
       >
       applyPatch: (patchName: string) => Promise<void>
+      getCity: () => Promise<string>
+      setCity: (city: string) => Promise<void>
     }
   }
 }
