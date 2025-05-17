@@ -384,12 +384,26 @@ const GeneralTab: React.FC = () => {
   )
 }
 
+enum WeatherTypes {
+  Valid,
+  Invalid
+}
+
 const WeatherTab: React.FC = () => {
-  const handleCityChange = (city: string) => {
-    window.api.setCity(city)
+  const [validCity, setValidCity] = useState<WeatherTypes | null>(null)
+
+  const handleCityChange = async (city: string) => {
+    const res = await window.api.setCity(city)
+    
+    if (res === true) {
+      setValidCity(WeatherTypes.Valid)
+    } else {
+      setValidCity(WeatherTypes.Invalid)
+    }
   }
 
   return (
+    <>
       <InputWithSubmitSetting
       label="City"
       description="Used for getting your location for weather"
@@ -397,6 +411,13 @@ const WeatherTab: React.FC = () => {
       onSubmit={(value) => handleCityChange(value)}
       submitLabel="Change"
     />
+
+    {validCity === WeatherTypes.Invalid ? (
+        <p className={styles.error}>Invalid City</p>
+      ) : validCity === WeatherTypes.Valid ? (
+        <p className={styles.success}>City saved!</p>
+      ) : null}
+    </>
   )
 }
 

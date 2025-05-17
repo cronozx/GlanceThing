@@ -45,7 +45,7 @@ declare global {
       >
       applyPatch: (patchName: string) => Promise<void>
       getCity: () => Promise<string>
-      setCity: (city: string) => Promise<void>
+      setCity: (city: string) => Promise<boolean>
     }
   }
 }

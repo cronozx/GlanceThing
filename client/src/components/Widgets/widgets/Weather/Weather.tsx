@@ -14,6 +14,35 @@ const Weather: React.FC = () => {
     const [weather, setWeatherData] = useState<WeatherData | null>(null)
     const [weatherIcon, setWeatherIcon] = useState<String | null>(null)
     const [weatherDescription, setWeatherDescription] = useState<String | null>(null)
+    const [time, setTime] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (ready === true && socket) {
+        const listener = (e: MessageEvent) => {
+            const { type, data } = JSON.parse(e.data)
+            if (type !== 'time') return
+            setTime(data.time)
+        }
+
+        socket.addEventListener('message', listener)
+
+        socket.send(JSON.stringify({ type: 'time' }))
+
+        return () => {
+            socket.removeEventListener('message', listener)
+        }
+        }
+    }, [ready, socket])
+
+    useEffect(() => {
+        if (time?.endsWith('0') && socket) {
+            socket.send(
+                JSON.stringify({
+                    type: 'weather'
+                })
+            )
+        }
+    }, [time, socket])
 
     useEffect(() => {
         if (ready === true && socket) {
@@ -123,11 +152,10 @@ const Weather: React.FC = () => {
             {weather ? (
                 <div className={styles.weather}>
                     <div className={styles.icon}>
-                        <>{console.log(weatherIcon)}</>
                         <span className="material-icons">{weatherIcon}</span>
                     </div>
                     <div className={styles.info}>
-                        <div className={styles.temp}>{weather.temp}°F</div>
+                        <div className={styles.temp}>{weather.temp.toFixed(0)}°F</div>
                         <div className={styles.description}>{weatherDescription}</div>
                     </div>
                 </div>
