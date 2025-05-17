@@ -1,6 +1,6 @@
 {
   "name": "glancething",
-  "version": "0.0.8-8",
+  "version": "0.09",
   "description": "Desktop application for GlanceThing",
   "main": "./out/main/index.js",
   "author": "BluDood",
