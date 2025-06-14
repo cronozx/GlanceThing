@@ -23,6 +23,34 @@ async function subscribe(connection_id: string, token: string) {
   )
 }
 
+export async function getClientToken(sp_dc: string) {
+  const totp = await generateTotp()
+
+  const res = await axios.get(
+    'https://open.spotify.com/api/token',
+    {
+      headers: {
+        cookie: `sp_dc=${sp_dc};`,
+        'user-agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+      },
+      params: {
+        reason: 'init',
+        productType: 'web-player',
+        totp,
+        totpVer: '5',
+      },
+      validateStatus: () => true
+    }
+  )
+
+  if (res.status !== 200) throw new Error('Invalid sp_dc')
+
+  if (!res.data.accessToken) throw new Error('Invalid sp_dc')
+
+  return res.data.accessToken
+}
+
 export function openSpotifyLogin(): Promise<string> {
   return new Promise((resolve, reject) => {
     const clientID = getSpotifyCID();
@@ -165,10 +193,7 @@ function cleanBuffer(e: string): Uint8Array {
   return buffer
 }
 
-async function generateTotp(): Promise<{
-  otp: string
-  timestamp: number
-}> {
+async function generateTotp(): Promise<string> {
   const secretSauce = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
 
   const secretCipherBytes = [
@@ -183,46 +208,9 @@ async function generateTotp(): Promise<{
 
   const secret = base32FromBytes(secretBytes, secretSauce)
 
-  const res = await axios.get('https://open.spotify.com/server-time')
-  const timestamp = res.data.serverTime * 1000
+  const totp = TOTP.generate(secret)
 
-  const totp = TOTP.generate(secret, {
-    timestamp
-  })
-
-  return {
-    otp: totp.otp,
-    timestamp
-  }
-}
-
-export async function getClientToken(sp_dc: string) {
-  const totp = await generateTotp()
-
-  const res = await axios.get(
-    'https://open.spotify.com/get_access_token',
-    {
-      headers: {
-        cookie: `sp_dc=${sp_dc};`,
-        'user-agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
-      },
-      params: {
-        reason: 'init',
-        productType: 'web-player',
-        totp: totp.otp,
-        totpVer: '5',
-        ts: totp.timestamp
-      },
-      validateStatus: () => true
-    }
-  )
-
-  if (res.status !== 200) throw new Error('Invalid sp_dc')
-
-  if (!res.data.accessToken) throw new Error('Invalid sp_dc')
-
-  return res.data.accessToken
+  return totp.otp
 }
 
 interface SpotifyTrackItem {
@@ -501,11 +489,11 @@ class SpotifyAPI extends EventEmitter {
         return null
       })
 
-    this.clientToken = await getClientToken(this.sp_dc)
+      this.clientToken = await getClientToken(this.sp_dc)
 
-    this.ws = new WebSocket(
-      `wss://dealer.spotify.com/?access_token=${this.clientToken}`
-    )
+      this.ws = new WebSocket(
+        `wss://dealer.spotify.com/?access_token=${this.clientToken}`
+      )
 
     this.setup()
   }
@@ -532,6 +520,7 @@ class SpotifyAPI extends EventEmitter {
 
         return
       }
+
       const event = msg.payloads?.[0]?.events?.[0]
       if (!event) return
       this.emit(event.type, event.event)
