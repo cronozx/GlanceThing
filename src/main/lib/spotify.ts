@@ -163,54 +163,12 @@ export async function refreshToken(clientID: string, clientSecret: string): Prom
   return tokenRes.data.access_token;
 }
 
-function base32FromBytes(bytes: Uint8Array, secretSauce: string): string {
-  let t = 0
-  let n = 0
-  let r = ''
-
-  for (let i = 0; i < bytes.length; i++) {
-    n = (n << 8) | bytes[i]
-    t += 8
-    while (t >= 5) {
-      r += secretSauce[(n >>> (t - 5)) & 31]
-      t -= 5
-    }
-  }
-
-  if (t > 0) {
-    r += secretSauce[(n << (5 - t)) & 31]
-  }
-
-  return r
-}
-
-function cleanBuffer(e: string): Uint8Array {
-  e = e.replace(' ', '')
-  const buffer = new Uint8Array(e.length / 2)
-  for (let i = 0; i < e.length; i += 2) {
-    buffer[i / 2] = parseInt(e.substring(i, i + 2), 16)
-  }
-  return buffer
-}
-
 async function generateTotp(): Promise<string> {
-  const secretSauce = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+  const secret = "GEYDEMZZGM2TMOJYGI3DQNBUGY4TCMRQGEZDCNBXGEZDEMZUHE2DQMRZGQYTANZXGMZTMNRYG4YA";
 
-  const secretCipherBytes = [
-    12, 56, 76, 33, 88, 44, 88, 33, 78, 78, 11, 66, 22, 22, 55, 69, 54
-  ].map((e, t) => e ^ ((t % 33) + 9))
+  const totp = TOTP.generate(secret);
 
-  const secretBytes = cleanBuffer(
-    new TextEncoder()
-      .encode(secretCipherBytes.join(''))
-      .reduce((acc, val) => acc + val.toString(16).padStart(2, '0'), '')
-  )
-
-  const secret = base32FromBytes(secretBytes, secretSauce)
-
-  const totp = TOTP.generate(secret)
-
-  return totp.otp
+  return totp.otp;
 }
 
 interface SpotifyTrackItem {
