@@ -26,6 +26,8 @@ async function subscribe(connection_id: string, token: string) {
 export async function getClientToken(sp_dc: string) {
   const totp = await generateTotp()
 
+  if (!totp) throw new Error('Failed to generate TOTP')
+
   const res = await axios.get(
     'https://open.spotify.com/api/token',
     {
@@ -37,8 +39,9 @@ export async function getClientToken(sp_dc: string) {
       params: {
         reason: 'init',
         productType: 'web-player',
-        totp,
-        totpVer: '5',
+        totp: totp.otp,
+        totpServer: totp.otp,
+        totpVer: totp.version,
       },
       validateStatus: () => true
     }
@@ -163,12 +166,21 @@ export async function refreshToken(clientID: string, clientSecret: string): Prom
   return tokenRes.data.access_token;
 }
 
-async function generateTotp(): Promise<string> {
-  const secret = "GEYDEMZZGM2TMOJYGI3DQNBUGY4TCMRQGEZDCNBXGEZDEMZUHE2DQMRZGQYTANZXGMZTMNRYG4YA";
+async function generateTotp(): Promise<{
+  otp: string
+  version: string
+} | null> {
+  const res = await axios.get(
+    'https://gist.github.com/BluDood/1c82e1086a21adfad5e121f255774d57/raw'
+  )
+  if (res.status !== 200) return null
 
-  const totp = TOTP.generate(secret);
+  const totp = TOTP.generate(res.data.secret)
 
-  return totp.otp;
+  return {
+    otp: totp.otp,
+    version: res.data.version
+  }
 }
 
 interface SpotifyTrackItem {
